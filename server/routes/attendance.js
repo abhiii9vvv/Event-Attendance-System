@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
     const raw = err?.response?.data?.error;
     const detail = typeof raw === 'string' ? raw : raw?.message || err.message;
     console.error('[POST /api/attendance]', detail);
-    return res.status(500).json({ error: 'Server error. Please try again.' });
+    return res.status(500).json({ error: detail || 'Server error. Please try again.' });
   }
 });
 
