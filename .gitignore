@@ -9,10 +9,14 @@ server/node_modules/
 *.local
 
 # Google Service Account credentials
-*.json
+gen-lang-client-*.json
 !package.json
+!package-lock.json
 !client/package.json
+!client/package-lock.json
 !server/package.json
+!server/package-lock.json
+!vercel.json
 
 # Build output
 dist/
