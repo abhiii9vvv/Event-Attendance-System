@@ -38,7 +38,9 @@ router.post('/', async (req, res) => {
       .status(201)
       .json({ message: 'Attendance submitted successfully!' });
   } catch (err) {
-    console.error('[POST /api/attendance]', err.message);
+    const raw = err?.response?.data?.error;
+    const detail = typeof raw === 'string' ? raw : raw?.message || err.message;
+    console.error('[POST /api/attendance]', detail);
     return res.status(500).json({ error: 'Server error. Please try again.' });
   }
 });
@@ -55,7 +57,9 @@ router.get('/', async (req, res) => {
 
     return res.json({ count: records.length, data: records });
   } catch (err) {
-    console.error('[GET /api/attendance]', err.message);
+    const raw = err?.response?.data?.error;
+    const detail = typeof raw === 'string' ? raw : raw?.message || err.message;
+    console.error('[GET /api/attendance]', detail);
     return res.status(500).json({ error: 'Server error. Please try again.' });
   }
 });

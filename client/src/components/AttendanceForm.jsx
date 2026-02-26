@@ -98,9 +98,12 @@ export default function AttendanceForm() {
       setForm(INITIAL_FORM);
       setErrors({});
     } catch (err) {
+      const errData = err.response?.data?.error;
       const msg =
-        err.response?.data?.error || 'Something went wrong. Please try again.';
-      setStatus({ type: 'error', message: msg });
+        typeof errData === 'string'
+          ? errData
+          : errData?.message || err.message || 'Something went wrong. Please try again.';
+      setStatus({ type: 'error', message: String(msg) });
     } finally {
       setLoading(false);
     }
