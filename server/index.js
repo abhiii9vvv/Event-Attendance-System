@@ -33,7 +33,7 @@ app.use(express.json());
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/attendance', attendanceRoutes);
 
-app.get('/health', (_req, res) => res.json({
+app.get('/api/health', (_req, res) => res.json({
   status: 'OK',
   time: new Date(),
   env: {
