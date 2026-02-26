@@ -21,7 +21,11 @@ app.use('/api/attendance', attendanceRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'OK', time: new Date() }));
 
-// ── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`✅  Server running on http://localhost:${PORT}`);
-});
+// ── Start (local dev only) ────────────────────────────────────────────────────
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`✅  Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
