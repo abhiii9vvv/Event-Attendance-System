@@ -30,6 +30,9 @@ app.use(
 app.options('*', cors());
 app.use(express.json());
 
+// ── Routes ────────────────────────────────────────────────────────────────────
+app.use('/api/attendance', attendanceRoutes);
+
 // ── Debug: test Google Sheets auth ───────────────────────────────────────────
 app.get('/api/test-sheets', async (_req, res) => {
   try {
@@ -40,8 +43,6 @@ app.get('/api/test-sheets', async (_req, res) => {
     return res.status(500).json({ ok: false, error: err.message, stack: err.stack?.split('\n').slice(0, 5) });
   }
 });
-
-
 
 app.get('/api/health', (_req, res) => res.json({
   status: 'OK',
