@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 5000;
 // ── Middleware ──────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   process.env.CLIENT_URL,
+  'https://event-attendance-system-umber.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
 ].filter(Boolean);
@@ -19,6 +20,10 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. Postman, same-origin on Vercel)
       if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      // Also allow any vercel.app domain for preview deployments
+      if (origin && origin.includes('vercel.app')) {
         return callback(null, true);
       }
       callback(new Error('Not allowed by CORS'));
@@ -43,6 +48,11 @@ app.get('/api/test-sheets', async (_req, res) => {
     return res.status(500).json({ ok: false, error: err.message, stack: err.stack?.split('\n').slice(0, 5) });
   }
 });
+
+
+
+// ── Debug: show what path/url Express sees ──────────────────────────────────
+app.all('/api/debug-path', (req, res) => res.json({ url: req.url, path: req.path, method: req.method, originalUrl: req.originalUrl }));
 
 app.get('/api/health', (_req, res) => res.json({
   status: 'OK',

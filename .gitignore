@@ -40,3 +40,6 @@ Thumbs.db
 
 # Vite cache
 client/.vite/
+
+# Local Netlify folder
+.netlify
