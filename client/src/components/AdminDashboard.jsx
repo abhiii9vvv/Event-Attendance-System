@@ -32,7 +32,92 @@ function downloadCSV(records) {
   a.click();
   URL.revokeObjectURL(url);
 }
+// ── Organized CSV export by Course & Section ────────────────────────────
+function downloadOrganizedCSV(records) {
+  // Group records by Course and Section
+  const grouped = {};
+  records.forEach((record) => {
+    const course = record['Course'] || 'Unknown Course';
+    const section = record['Section'] || 'Unknown Section';
+    const key = `${course}_${section}`;
+    
+    if (!grouped[key]) {
+      grouped[key] = { course, section, records: [] };
+    }
+    grouped[key].records.push(record);
+  });
 
+  // Create a zip-like CSV with organized sections
+  const allContent = [];
+  const dateStr = new Date().toISOString().slice(0, 10);
+
+  Object.values(grouped).forEach((group, idx) => {
+    // Add section header
+    if (idx > 0) allContent.push(''); // blank line between sections
+    allContent.push(`Course,${group.course}`);
+    allContent.push(`Section,${group.section}`);
+    allContent.push(`Records,${group.records.length}`);
+    allContent.push('');
+
+    // Add headers
+    const header = COLUMNS.map((c) => c.label).join(',');
+    allContent.push(header);
+
+    // Add rows
+    group.records.forEach((r) => {
+      const row = COLUMNS.map((c) => `"${(r[c.key] ?? '').replace(/"/g, '""')}"` ).join(',');
+      allContent.push(row);
+    });
+
+    allContent.push('');
+  });
+
+  const blob = new Blob([allContent.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `attendance_organized_${dateStr}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Download individual file for each Course/Section ────────────────────
+function downloadIndividualFiles(records) {
+  // Group records by Course and Section
+  const grouped = {};
+  records.forEach((record) => {
+    const course = record['Course'] || 'Unknown';
+    const section = record['Section'] || 'Unknown';
+    const key = `${course}_${section}`;
+    
+    if (!grouped[key]) {
+      grouped[key] = { course, section, records: [] };
+    }
+    grouped[key].records.push(record);
+  });
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+
+  // Download each group as separate file
+  Object.values(grouped).forEach((group) => {
+    const header = COLUMNS.map((c) => c.label).join(',');
+    const rows = group.records.map((r) =>
+      COLUMNS.map((c) => `"${(r[c.key] ?? '').replace(/"/g, '""')}"` ).join(',')
+    );
+    const csvContent = [header, ...rows].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    // Sanitize filename: remove/replace invalid characters
+    const safeCourse = group.course.replace(/[/\\?*:|"<>]/g, '');
+    const safeSection = group.section.replace(/[/\\?*:|"<>]/g, '');
+    a.download = `attendance_${safeCourse}_${safeSection}_${dateStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
 // ── Password Gate ─────────────────────────────────────────────────────────────
 function PasswordGate({ onAuth }) {
   const [pw, setPw] = useState('');
@@ -135,7 +220,7 @@ export default function AdminDashboard() {
             Emerging Trends in AI, Security &amp; Image Analysis
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <button
             onClick={fetchRecords}
             disabled={loading}
@@ -143,13 +228,34 @@ export default function AdminDashboard() {
           >
             {loading ? 'Loading…' : '⟳ Refresh'}
           </button>
-          <button
-            onClick={() => downloadCSV(records)}
-            disabled={records.length === 0}
-            className="btn-primary text-xs px-3 py-2 sm:px-4"
-          >
-            ↓ CSV
-          </button>
+          <div className="relative group">
+            <button
+              disabled={records.length === 0}
+              className="btn-primary text-xs px-3 py-2 sm:px-4 flex items-center gap-1"
+            >
+              ↓ Export
+            </button>
+            <div className="absolute right-0 mt-1 hidden group-hover:block bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+              <button
+                onClick={() => downloadCSV(records)}
+                className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-blue-50 whitespace-nowrap"
+              >
+                All Records (Single CSV)
+              </button>
+              <button
+                onClick={() => downloadOrganizedCSV(records)}
+                className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-blue-50 whitespace-nowrap border-t border-slate-200"
+              >
+                Organized by Course/Section
+              </button>
+              <button
+                onClick={() => downloadIndividualFiles(records)}
+                className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-blue-50 whitespace-nowrap border-t border-slate-200"
+              >
+                Separate Files per Class
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
