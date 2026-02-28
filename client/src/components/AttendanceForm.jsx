@@ -3,6 +3,8 @@ import axios from 'axios';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const COURSES = ['B.Tech', 'M.Tech'];
+const BTECH_YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const MTECH_YEARS = ['1st Year', '2nd Year'];
 const SECTIONS = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)); // A–Z
 const GROUPS = ['G1', 'G2'];
 const EVENT = 'Emerging Trends in AI, Security & Image Analysis';
@@ -11,6 +13,7 @@ const INITIAL_FORM = {
   name: '',
   systemId: '',
   course: '',
+  year: '',
   section: '',
   group: '',
   email: '',
@@ -63,6 +66,7 @@ export default function AttendanceForm() {
       errs.systemId = 'System ID must be a number.';
     }
     if (!form.course) errs.course = 'Please select a course.';
+    if (!form.year) errs.year = 'Please select a year.';
     if (!form.section) errs.section = 'Please select a section.';
     if (!form.group) errs.group = 'Please select a group.';
     if (!form.email.trim()) {
@@ -90,6 +94,7 @@ export default function AttendanceForm() {
         name: form.name.trim(),
         systemId: form.systemId.trim(),
         course: form.course,
+        year: form.year,
         section: form.section,
         group: form.group,
         email: form.email.trim().toLowerCase(),
@@ -186,7 +191,7 @@ export default function AttendanceForm() {
           )}
         </div>
 
-        {/* Course & Section — row */}
+        {/* Course & Year — row */}
         <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Course */}
           <div>
@@ -212,29 +217,59 @@ export default function AttendanceForm() {
             )}
           </div>
 
-          {/* Section */}
+          {/* Year */}
           <div>
-            <label htmlFor="section" className="form-label">
-              Section <span className="text-red-500">*</span>
+            <label htmlFor="year" className="form-label">
+              Year <span className="text-red-500">*</span>
             </label>
             <select
-              id="section"
-              name="section"
-              value={form.section}
+              id="year"
+              name="year"
+              value={form.year}
               onChange={handleChange}
-              className={`form-input ${errors.section ? 'input-error' : ''}`}
+              disabled={!form.course}
+              className={`form-input ${errors.year ? 'input-error' : ''}`}
             >
               <option value="">Select</option>
-              {SECTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
+              {form.course === 'B.Tech' && BTECH_YEARS.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+              {form.course === 'M.Tech' && MTECH_YEARS.map((y) => (
+                <option key={y} value={y}>
+                  {y}
                 </option>
               ))}
             </select>
-            {errors.section && (
-              <p className="mt-1 text-xs text-red-600">{errors.section}</p>
+            {errors.year && (
+              <p className="mt-1 text-xs text-red-600">{errors.year}</p>
             )}
           </div>
+        </div>
+
+        {/* Section */}
+        <div className="mb-5">
+          <label htmlFor="section" className="form-label">
+            Section <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="section"
+            name="section"
+            value={form.section}
+            onChange={handleChange}
+            className={`form-input ${errors.section ? 'input-error' : ''}`}
+          >
+            <option value="">Select</option>
+            {SECTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          {errors.section && (
+            <p className="mt-1 text-xs text-red-600">{errors.section}</p>
+          )}
         </div>
 
         {/* Group */}

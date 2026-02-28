@@ -3,6 +3,8 @@ import axios from 'axios';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const COURSES = ['B.Tech', 'M.Tech'];
+const BTECH_YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const MTECH_YEARS = ['1st Year', '2nd Year'];
 const SECTIONS = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
 const GROUPS = ['G1', 'G2'];
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
@@ -12,6 +14,7 @@ const COLUMNS = [
   { key: 'Name',         label: 'Name' },
   { key: 'System ID',    label: 'System ID' },
   { key: 'Course',       label: 'Course' },
+  { key: 'Year',         label: 'Year' },
   { key: 'Section',      label: 'Section' },
   { key: 'Group',        label: 'Group' },
   { key: 'Sharda Email', label: 'Email' },
@@ -169,7 +172,7 @@ function PasswordGate({ onAuth }) {
 // ── Admin Dashboard ───────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
-  const [filters, setFilters] = useState({ course: '', section: '', group: '' });
+  const [filters, setFilters] = useState({ course: '', year: '', section: '', group: '' });
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -181,6 +184,7 @@ export default function AdminDashboard() {
     try {
       const params = {};
       if (filters.course)  params.course  = filters.course;
+      if (filters.year)    params.year    = filters.year;
       if (filters.section) params.section = filters.section;
       if (filters.group)   params.group   = filters.group;
 
@@ -204,7 +208,7 @@ export default function AdminDashboard() {
   };
 
   const clearFilters = () =>
-    setFilters({ course: '', section: '', group: '' });
+    setFilters({ course: '', year: '', section: '', group: '' });
 
   // ── Auth gate ──────────────────────────────────────────────────────────
   if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
@@ -254,6 +258,25 @@ export default function AdminDashboard() {
               >
                 Separate Files per Class
               </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/attendance/export/csv');
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `attendance_organized_${new Date().toISOString().slice(0, 10)}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch (err) {
+                    console.error('Error downloading CSV:', err);
+                  }
+                }}
+                className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-green-50 whitespace-nowrap border-t border-slate-200 font-semibold text-green-700"
+              >
+                📥 Share CSV (Direct from Server)
+              </button>
             </div>
           </div>
         </div>
@@ -264,7 +287,7 @@ export default function AdminDashboard() {
         <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Filter Records
         </h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {/* Course */}
           <div>
             <label className="form-label text-xs">Course</label>
@@ -277,6 +300,31 @@ export default function AdminDashboard() {
               <option value="">All Courses</option>
               {COURSES.map((c) => (
                 <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Year */}
+          <div>
+            <label className="form-label text-xs">Year</label>
+            <select
+              name="year"
+              value={filters.year}
+              onChange={handleFilterChange}
+              className="form-input text-sm"
+            >
+              <option value="">All Years</option>
+              {filters.course === 'B.Tech' && BTECH_YEARS.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+              {filters.course === 'M.Tech' && MTECH_YEARS.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+              {!filters.course && [
+                ...BTECH_YEARS,
+                ...MTECH_YEARS
+              ].filter((v, i, arr) => arr.indexOf(v) === i).map((y) => (
+                <option key={y} value={y}>{y}</option>
               ))}
             </select>
           </div>
